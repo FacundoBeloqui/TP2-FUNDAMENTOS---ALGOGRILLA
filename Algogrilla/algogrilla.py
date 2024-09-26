@@ -17,6 +17,7 @@ def main():
 
 
 def normalizar(caracter):
+    """Convierte las letras vocales que llevan tilde en su version normal(sin tilde)"""
     reemplazos = (
         ('a', 'á'),
         ('e', 'é'),
@@ -31,22 +32,59 @@ def normalizar(caracter):
 
 
 def elegir_frase():
+    """Elige una frase random del archivo frases.csv y devuelve por separado la frase en si misma
+    y las columnas en las que iran cada una de sus letras que compartan con las palabras seleccionadas"""
     with open('frases.csv') as frases:
         reader = csv.reader(frases, delimiter='|', quoting=csv.QUOTE_NONE)
         fila = random.choice(list(reader))
         frase = fila[0]
-        return frase
+        columnas = fila[1]
+        return frase, columnas
+
+
+def dividir_columnas(columnas):
+    columnas = columnas.split(',')
+    lista_columnas = []
+    for columna in columnas:
+        columna = int(columna)
+        lista_columnas.append(columna)
+    return lista_columnas
 
 
 def separar_frase(frase):
+    """junta toda la frase eliminando espacios y caracteres no alfabeticos(ademas de convertir las vocales con tilde en su version normal)
+    y luego la separa en 2 devolviendo las 2 subfrases respectivamente"""
     frase_caracteres_alfabeticos = ''
-    frase_sin_espacios = frase.strip(' ')
-    for caracter in frase_sin_espacios:
+    for caracter in frase:
         caracter = caracter.lower()
         if caracter.isalpha():
             frase_caracteres_alfabeticos += normalizar(caracter)
-    subfrase_1, subfrase_2 = frase_caracteres_alfabeticos[
-                             :len(frase_caracteres_alfabeticos) // 2], frase_caracteres_alfabeticos[
-                                                                       len(frase_caracteres_alfabeticos) // 2:]
+    mitad = len(frase_caracteres_alfabeticos) // 2
+    subfrase_1 = frase_caracteres_alfabeticos[:mitad]
+    subfrase_2 = frase_caracteres_alfabeticos[mitad:]
     return subfrase_1, subfrase_2
 
+
+def crear_grilla(subfrase_1, subfrase_2, columnas):
+    """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
+    a medida que se itera sobre cada fila, se inserta la letra de la subfrase que coincide con la columna especificada en la frase"""
+    cant_filas = len(subfrase_1)
+    columnas = dividir_columnas(columnas)
+    grilla = []
+    for _ in range(cant_filas):
+        fila = []
+        for _ in range(max(columnas) + 2):
+            fila.append(" ")
+        grilla.append(fila)
+    for i in range(cant_filas):
+        grilla[i][columnas[0]] = subfrase_1[i]
+        grilla[i][columnas[1]] = subfrase_2[i]
+    return grilla
+
+
+frase, columnas = elegir_frase()
+subfrase_1, subfrase_2 = separar_frase(frase)
+grilla = crear_grilla(subfrase_1, subfrase_2, columnas)
+print(frase)
+for fila in grilla:
+    print("".join(fila))
