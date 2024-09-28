@@ -15,6 +15,16 @@ def main():
 
     imprimir_solucion = args.solucion  # es True si el usuario incluyó la opción -s
 
+    frase, columnas = elegir_frase()
+    subfrase_1, subfrase_2 = separar_frase(frase)
+    grilla = crear_grilla(subfrase_1, subfrase_2, columnas)
+    palabras_de_la_frase, silabas, descripcion = elegir_palabra(subfrase_1, subfrase_2, columnas)
+
+    print(frase)
+    print(palabras_de_la_frase)
+    for index, fila in enumerate(grilla):
+        print(index + 1, "".join(fila))
+
 
 def normalizar(caracter):
     """Convierte las letras vocales que llevan tilde en su version normal(sin tilde)"""
@@ -34,8 +44,8 @@ def normalizar(caracter):
 def elegir_frase():
     """Elige una frase random del archivo frases.csv y devuelve por separado la frase en si misma
     y las columnas en las que iran cada una de sus letras que compartan con las palabras seleccionadas"""
-    with open('frases.csv') as frases:
-        reader = csv.reader(frases, delimiter='|', quoting=csv.QUOTE_NONE)
+    with open('frases.csv') as archivo_frases:
+        reader = csv.reader(archivo_frases, delimiter='|', quoting=csv.QUOTE_NONE)
         fila = random.choice(list(reader))
         frase = fila[0]
         columnas = fila[1]
@@ -65,6 +75,26 @@ def separar_frase(frase):
     return subfrase_1, subfrase_2
 
 
+def elegir_palabra(subfrase_1, subfrase_2, columnas):
+    """Elige una palabra de palabras.csv que cumpla con que la posicion de sus letras coincida con las de las columnas de la frase de la grilla,
+       ademas devuelve sus silabas y descripcion para despues ser usadas en la funcion mostrar grilla"""
+    palabras_de_la_frase = []
+    silabas_de_la_frase = []
+    descripcion_de_la_frase = []
+    columnas = dividir_columnas(columnas)
+    columna_subfrase_1, columna_subfrase_2 = columnas[0] - 1, columnas[1] - 1
+    with open('palabras.csv') as archivo_palabras:
+        reader = csv.reader(archivo_palabras, delimiter='|')
+        lista_palabras = list(reader)
+        for letra_1 in subfrase_1:
+            for letra_2 in subfrase_2:
+                for palabra, silabas, descripcion in lista_palabras:
+                    if len(palabra) > max(columna_subfrase_1, columna_subfrase_2):
+                        if palabra[columna_subfrase_1] == letra_1 and palabra[columna_subfrase_2] == letra_2:
+                            palabras_de_la_frase.append(palabra)
+    return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
+
+
 def crear_grilla(subfrase_1, subfrase_2, columnas):
     """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
     a medida que se itera sobre cada fila, se inserta la letra de la subfrase que coincide con la columna especificada en la frase"""
@@ -82,9 +112,4 @@ def crear_grilla(subfrase_1, subfrase_2, columnas):
     return grilla
 
 
-frase, columnas = elegir_frase()
-subfrase_1, subfrase_2 = separar_frase(frase)
-grilla = crear_grilla(subfrase_1, subfrase_2, columnas)
-print(frase)
-for fila in grilla:
-    print("".join(fila))
+main()
