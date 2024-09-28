@@ -17,13 +17,16 @@ def main():
 
     frase, columnas = elegir_frase()
     subfrase_1, subfrase_2 = separar_frase(frase)
-    grilla = crear_grilla(subfrase_1, subfrase_2, columnas)
     palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+    grilla = crear_grilla(subfrase_1, subfrase_2, columnas, palabras_de_la_frase)
 
     print(frase)
     print(palabras_de_la_frase)
     for index, fila in enumerate(grilla):
-        print(index + 1, "".join(fila))
+        fila_numero = f"{index + 1} "
+        if index < 9:
+            fila_numero = " " + fila_numero
+        print(fila_numero + "".join(fila))
 
 
 def normalizar(caracter):
@@ -58,7 +61,8 @@ def dividir_columnas(columnas):
     for columna in columnas:
         columna = int(columna)
         lista_columnas.append(columna)
-    return lista_columnas
+    columna_subfrase_1, columna_subfrase_2 = lista_columnas[0] - 1, lista_columnas[1] - 1
+    return columna_subfrase_1, columna_subfrase_2
 
 
 def separar_frase(frase):
@@ -81,8 +85,7 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
     palabras_de_la_frase = []
     silabas_de_la_frase = []
     descripcion_de_la_frase = []
-    columnas = dividir_columnas(columnas)
-    columna_subfrase_1, columna_subfrase_2 = columnas[0] - 1, columnas[1] - 1
+    columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     with open('palabras.csv') as archivo_palabras:
         reader = csv.reader(archivo_palabras, delimiter='|')
         lista_palabras = list(reader)
@@ -98,20 +101,22 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
                             break
     return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
 
-def crear_grilla(subfrase_1, subfrase_2, columnas):
+def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
     """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
     a medida que se itera sobre cada fila, se inserta la letra de la subfrase que coincide con la columna especificada en la frase"""
     cant_filas = len(subfrase_1)
-    columnas = dividir_columnas(columnas)
+    columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     grilla = []
     for _ in range(cant_filas):
         fila = []
-        for _ in range(max(columnas) + 2):
+        for _ in range(columna_subfrase_2):
             fila.append(" ")
         grilla.append(fila)
     for i in range(cant_filas):
-        grilla[i][columnas[0]] = subfrase_1[i]
-        grilla[i][columnas[1]] = subfrase_2[i]
-
+        if i < len(palabras_de_la_frase):
+            palabras = list(palabras_de_la_frase[i])
+            grilla[i] = palabras
+            palabras[columna_subfrase_1] = palabras[columna_subfrase_1].upper()
+            palabras[columna_subfrase_2] = palabras[columna_subfrase_2].upper()
     return grilla
 main()
