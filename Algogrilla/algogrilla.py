@@ -18,7 +18,7 @@ def main():
     frase, columnas = elegir_frase()
     subfrase_1, subfrase_2 = separar_frase(frase)
     grilla = crear_grilla(subfrase_1, subfrase_2, columnas)
-    palabras_de_la_frase, silabas, descripcion = elegir_palabra(subfrase_1, subfrase_2, columnas)
+    palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
 
     print(frase)
     print(palabras_de_la_frase)
@@ -75,7 +75,7 @@ def separar_frase(frase):
     return subfrase_1, subfrase_2
 
 
-def elegir_palabra(subfrase_1, subfrase_2, columnas):
+def guardar_palabras(subfrase_1, subfrase_2, columnas):
     """Elige una palabra de palabras.csv que cumpla con que la posicion de sus letras coincida con las de las columnas de la frase de la grilla,
        ademas devuelve sus silabas y descripcion para despues ser usadas en la funcion mostrar grilla"""
     palabras_de_la_frase = []
@@ -86,14 +86,17 @@ def elegir_palabra(subfrase_1, subfrase_2, columnas):
     with open('palabras.csv') as archivo_palabras:
         reader = csv.reader(archivo_palabras, delimiter='|')
         lista_palabras = list(reader)
-        for letra_1 in subfrase_1:
-            for letra_2 in subfrase_2:
+        for i, letra_1 in enumerate(subfrase_1):
+            if i < len(subfrase_2):
+                letra_2 = subfrase_2[i]
                 for palabra, silabas, descripcion in lista_palabras:
                     if len(palabra) > max(columna_subfrase_1, columna_subfrase_2):
                         if palabra[columna_subfrase_1] == letra_1 and palabra[columna_subfrase_2] == letra_2:
                             palabras_de_la_frase.append(palabra)
+                            silabas_de_la_frase.append(silabas)
+                            descripcion_de_la_frase.append(descripcion)
+                            break
     return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
-
 
 def crear_grilla(subfrase_1, subfrase_2, columnas):
     """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
@@ -109,7 +112,6 @@ def crear_grilla(subfrase_1, subfrase_2, columnas):
     for i in range(cant_filas):
         grilla[i][columnas[0]] = subfrase_1[i]
         grilla[i][columnas[1]] = subfrase_2[i]
+
     return grilla
-
-
 main()
