@@ -1,4 +1,5 @@
 import argparse, datetime, random, csv
+from curses.ascii import isalpha
 
 
 def main():
@@ -15,11 +16,11 @@ def main():
 
     imprimir_solucion = args.solucion  # es True si el usuario incluyó la opción -s
 
-    frase, columnas = elegir_frase()
+    frase, columnas, autores = elegir_frase()
     subfrase_1, subfrase_2 = separar_frase(frase)
     palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
     grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
-    mostrar_grilla(grilla, silabas, descripcion)
+    modo_interactivo(grilla, silabas, descripcion, autores)
 
 def normalizar(caracter):
     """Convierte las letras vocales que llevan tilde en su version normal(sin tilde)"""
@@ -44,7 +45,8 @@ def elegir_frase():
         fila = random.choice(list(reader))
         frase = fila[0]
         columnas = fila[1]
-        return frase, columnas
+        autores = fila[2]
+        return frase, columnas, autores
 
 
 def dividir_columnas(columnas):
@@ -111,7 +113,7 @@ def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
             palabras[columna_subfrase_1] = palabras[columna_subfrase_1].upper()
             palabras[columna_subfrase_2] = palabras[columna_subfrase_2].upper()
     return grilla
-def mostrar_grilla(grilla, lista_silabas, lista_descripciones):
+def mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores):
     for index, fila in enumerate(grilla):
         fila_numero = f"{index + 1} "
         if index < 9:
@@ -120,11 +122,33 @@ def mostrar_grilla(grilla, lista_silabas, lista_descripciones):
     print()
     print("DEFINICIONES")
     for i in range(len(grilla)):
-        if i < len(grilla):
+        if i < (len(grilla) + 1):
             print(i + 1, lista_descripciones[i])
     print()
     print("SILABAS")
     for silabas in lista_silabas:
         silaba = silabas.split('-')
         print(random.choice(silaba) + ', ', end = '')
+    print()
+    print(f"Al finalizar se mostrara una frase de {autores}")
+
+def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores):
+    mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores)
+    print()
+    while True:
+        try:
+            numero_ingresado = int(input("Ingrese un numero de palabra o 0 para continuar: "))
+            if numero_ingresado < 0 or not type(numero_ingresado) == int:
+                raise ValueError("No se permiten numeros negativos o palabras.")
+            if numero_ingresado > len(grilla):
+                raise ValueError("El numero ingresado debe ser menor a la cantidad de palabras de la algogrilla.")
+        except ValueError as ve:
+            print(ve)
+            continue
+        if numero_ingresado == 0:
+            break
+
+        palabra_ingresada = input("Ingrese la definicion de la palabra")
+        while not isalpha(palabra_ingresada):
+            palabra_ingresada = input("Ingrese una palabra VALIDA, no numeros o caracteres no alfanumericos")
 main()
