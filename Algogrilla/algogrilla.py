@@ -18,16 +18,8 @@ def main():
     frase, columnas = elegir_frase()
     subfrase_1, subfrase_2 = separar_frase(frase)
     palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
-    grilla = crear_grilla(subfrase_1, subfrase_2, columnas, palabras_de_la_frase)
-
-    print(frase)
-    print(palabras_de_la_frase)
-    for index, fila in enumerate(grilla):
-        fila_numero = f"{index + 1} "
-        if index < 9:
-            fila_numero = " " + fila_numero
-        print(fila_numero + "".join(fila))
-
+    grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
+    mostrar_grilla(grilla, silabas, descripcion)
 
 def normalizar(caracter):
     """Convierte las letras vocales que llevan tilde en su version normal(sin tilde)"""
@@ -119,4 +111,20 @@ def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
             palabras[columna_subfrase_1] = palabras[columna_subfrase_1].upper()
             palabras[columna_subfrase_2] = palabras[columna_subfrase_2].upper()
     return grilla
+def mostrar_grilla(grilla, lista_silabas, lista_descripciones):
+    for index, fila in enumerate(grilla):
+        fila_numero = f"{index + 1} "
+        if index < 9:
+            fila_numero = " " + fila_numero
+        print(fila_numero + "".join(fila))
+    print()
+    print("DEFINICIONES")
+    for i in range(len(grilla)):
+        if i < len(grilla):
+            print(i + 1, lista_descripciones[i])
+    print()
+    print("SILABAS")
+    for silabas in lista_silabas:
+        silaba = silabas.split('-')
+        print(random.choice(silaba) + ', ', end = '')
 main()
