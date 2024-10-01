@@ -20,7 +20,8 @@ def main():
     subfrase_1, subfrase_2 = separar_frase(frase)
     palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
     grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
-    modo_interactivo(grilla, silabas, descripcion, autores)
+    modo_interactivo(grilla, silabas, descripcion, autores, palabras_de_la_frase, columnas)
+
 
 def normalizar(caracter):
     """Convierte las letras vocales que llevan tilde en su version normal(sin tilde)"""
@@ -95,6 +96,7 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
                             break
     return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
 
+
 def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
     """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
     a medida que se itera sobre cada fila, se inserta la letra de la subfrase que coincide con la columna especificada en la frase"""
@@ -113,6 +115,8 @@ def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
             palabras[columna_subfrase_1] = palabras[columna_subfrase_1].upper()
             palabras[columna_subfrase_2] = palabras[columna_subfrase_2].upper()
     return grilla
+
+
 def mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores):
     for index, fila in enumerate(grilla):
         fila_numero = f"{index + 1} "
@@ -121,21 +125,52 @@ def mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores):
         print(fila_numero + "".join(fila))
     print()
     print("DEFINICIONES")
-    for i in range(len(grilla)):
-        if i < (len(grilla) + 1):
+    for i in range(len(lista_descripciones)):
+        if i < (len(lista_descripciones) + 1):
             print(i + 1, lista_descripciones[i])
     print()
     print("SILABAS")
     for silabas in lista_silabas:
         silaba = silabas.split('-')
-        print(random.choice(silaba) + ', ', end = '')
+        print(random.choice(silaba) + ', ', end='')
     print()
     print(f"Al finalizar se mostrara una frase de {autores}")
 
-def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores):
+
+def quedan_puntos(grilla):
+    for fila in grilla:
+        if '.' in fila:
+            return True
+    return False
+
+
+def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabras, columnas):
+    diccionario_palabras = {}
+    columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
+    for i in range(len(palabras)):
+        palabras[i] = palabras[i].lower()
+        if len(palabras[i]) > max(columna_subfrase_1, columna_subfrase_2):
+            palabras[i] = list(palabras[i])
+            palabras[i][columna_subfrase_1] = palabras[i][columna_subfrase_1].upper()
+            palabras[i][columna_subfrase_2] = palabras[i][columna_subfrase_2].upper()
+        diccionario_palabras[i + 1] = ''.join(palabras[i])
+    for i in range(len(grilla)):
+        for j in range(len(grilla[i])):
+            grilla[i][j] = '.' if grilla[i][j].isalpha() else grilla[i][j]
     mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores)
     print()
+    for clave, palabra in diccionario_palabras.items():
+        palabra_normalizada = []
+        for letra in palabra:
+            letra_normalizada = normalizar(letra)
+            palabra_normalizada.append(letra_normalizada)
+        diccionario_palabras[clave] = ''.join(palabra_normalizada)
+
+    print(diccionario_palabras)
     while True:
+        if not quedan_puntos(grilla):
+            print("Felicidades! Adivinaste todas las palabras")
+            break
         try:
             numero_ingresado = int(input("Ingrese un numero de palabra o 0 para continuar: "))
             if numero_ingresado < 0 or not type(numero_ingresado) == int:
@@ -148,7 +183,16 @@ def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores):
         if numero_ingresado == 0:
             break
 
-        palabra_ingresada = input("Ingrese la definicion de la palabra")
-        while not isalpha(palabra_ingresada):
-            palabra_ingresada = input("Ingrese una palabra VALIDA, no numeros o caracteres no alfanumericos")
+        palabra_ingresada = input("Ingrese la definicion de la palabra: ").lower()
+        if numero_ingresado in diccionario_palabras and palabra_ingresada == diccionario_palabras[
+            numero_ingresado].lower():
+            grilla[numero_ingresado - 1].append(diccionario_palabras[numero_ingresado])
+            for i in range(len(grilla[numero_ingresado - 1])):
+                if '.' in grilla[numero_ingresado - 1]:
+                    grilla[numero_ingresado - 1].remove('.')
+            mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores)
+        else:
+            print("¡Incorrecto!")
+
+
 main()
