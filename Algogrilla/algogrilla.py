@@ -1,5 +1,4 @@
 import argparse, datetime, random, csv
-from curses.ascii import isalpha
 
 
 def main():
@@ -16,11 +15,18 @@ def main():
 
     imprimir_solucion = args.solucion  # es True si el usuario incluyó la opción -s
 
-    frase, columnas, autores = elegir_frase()
-    subfrase_1, subfrase_2 = separar_frase(frase)
-    palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
-    grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
-    modo_interactivo(grilla, silabas, descripcion, autores, palabras_de_la_frase, columnas)
+    if imprimir_solucion:
+        frase, columnas, autores = elegir_frase()
+        subfrase_1, subfrase_2 = separar_frase(frase)
+        palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+        grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
+        mostrar_grilla(grilla, silabas, descripcion, autores)
+    else:
+        frase, columnas, autores = elegir_frase()
+        subfrase_1, subfrase_2 = separar_frase(frase)
+        palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+        grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
+        modo_interactivo(grilla, silabas, descripcion, autores, palabras_de_la_frase, columnas)
 
 
 def normalizar(caracter):
@@ -41,13 +47,17 @@ def normalizar(caracter):
 def elegir_frase():
     """Elige una frase random del archivo frases.csv y devuelve por separado la frase en si misma
     y las columnas en las que iran cada una de sus letras que compartan con las palabras seleccionadas"""
-    with open('frases.csv') as archivo_frases:
-        reader = csv.reader(archivo_frases, delimiter='|', quoting=csv.QUOTE_NONE)
-        fila = random.choice(list(reader))
-        frase = fila[0]
-        columnas = fila[1]
-        autores = fila[2]
-        return frase, columnas, autores
+    try:
+        with open('frases.csv') as archivo_frases:
+            reader = csv.reader(archivo_frases, delimiter='|', quoting=csv.QUOTE_NONE)
+            fila = random.choice(list(reader))
+            frase = fila[0]
+            columnas = fila[1]
+            autores = fila[2]
+            return frase, columnas, autores
+    except FileNotFoundError:
+        print("No se encontro uno o mas archivos necesarios para la ejecucion del programa")
+        exit()
 
 
 def dividir_columnas(columnas):
@@ -177,8 +187,8 @@ def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabr
                 raise ValueError("No se permiten numeros negativos o palabras.")
             if numero_ingresado > len(grilla):
                 raise ValueError("El numero ingresado debe ser menor a la cantidad de palabras de la algogrilla.")
-        except ValueError as ve:
-            print(ve)
+        except ValueError:
+            print("Ingrese un numero no una palabra")
             continue
         if numero_ingresado == 0:
             break
@@ -187,6 +197,7 @@ def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabr
         if numero_ingresado in diccionario_palabras and palabra_ingresada == diccionario_palabras[
             numero_ingresado].lower():
             grilla[numero_ingresado - 1].append(diccionario_palabras[numero_ingresado])
+            print("Correcto!")
             for i in range(len(grilla[numero_ingresado - 1])):
                 if '.' in grilla[numero_ingresado - 1]:
                     grilla[numero_ingresado - 1].remove('.')
