@@ -88,8 +88,8 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
     """Elige una palabra de palabras.csv que cumpla con que la posicion de sus letras coincida con las de las columnas de la frase de la grilla,
        ademas devuelve sus silabas y descripcion para despues ser usadas en la funcion mostrar grilla"""
     palabras_de_la_frase = []
-    silabas_de_la_frase = []
-    descripcion_de_la_frase = []
+    silabas_de_la_frase = {}
+    descripcion_de_la_frase = {}
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     with open('palabras.csv') as archivo_palabras:
         reader = csv.reader(archivo_palabras, delimiter='|')
@@ -101,8 +101,8 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
                     if len(palabra) > max(columna_subfrase_1, columna_subfrase_2):
                         if palabra[columna_subfrase_1] == letra_1 and palabra[columna_subfrase_2] == letra_2:
                             palabras_de_la_frase.append(palabra)
-                            silabas_de_la_frase.append(silabas)
-                            descripcion_de_la_frase.append(descripcion)
+                            silabas_de_la_frase[i] = silabas
+                            descripcion_de_la_frase[i] = descripcion
                             break
     return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
 
@@ -127,22 +127,23 @@ def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
     return grilla
 
 
-def mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores):
-    for index, fila in enumerate(grilla):
-        fila_numero = f"{index + 1} "
-        if index < 9:
+def mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores):
+    """Muestra la solucion de la grilla por pantalla"""
+    for indice, fila in enumerate(grilla):
+        fila_numero = f"{indice + 1} "
+        if indice < 9:
             fila_numero = " " + fila_numero
         print(fila_numero + "".join(fila))
     print()
     print("DEFINICIONES")
-    for i in range(len(lista_descripciones)):
-        if i < (len(lista_descripciones) + 1):
-            print(i + 1, lista_descripciones[i])
+    for indice, descripcion in diccionario_descripciones.items():
+        if indice < (len(diccionario_descripciones) + 1):
+            print(indice + 1, descripcion)
     print()
     print("SILABAS")
-    for silabas in lista_silabas:
+    for silabas in diccionario_silabas.values():
         silaba = silabas.split('-')
-        print(random.choice(silaba) + ', ', end='')
+        print(f"{silaba[0]}, ", end='')
     print()
     print(f"Al finalizar se mostrara una frase de {autores}")
 
@@ -154,7 +155,7 @@ def quedan_puntos(grilla):
     return False
 
 
-def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabras, columnas):
+def modo_interactivo(grilla, diccionario_silabas, diccionario_descripciones, autores, palabras, columnas):
     diccionario_palabras = {}
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     for i in range(len(palabras)):
@@ -167,7 +168,7 @@ def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabr
     for i in range(len(grilla)):
         for j in range(len(grilla[i])):
             grilla[i][j] = '.' if grilla[i][j].isalpha() else grilla[i][j]
-    mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores)
+    mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
     print()
     for clave, palabra in diccionario_palabras.items():
         palabra_normalizada = []
@@ -175,7 +176,6 @@ def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabr
             letra_normalizada = normalizar(letra)
             palabra_normalizada.append(letra_normalizada)
         diccionario_palabras[clave] = ''.join(palabra_normalizada)
-
     print(diccionario_palabras)
     while True:
         if not quedan_puntos(grilla):
@@ -201,7 +201,9 @@ def modo_interactivo(grilla, lista_silabas, lista_descripciones, autores, palabr
             for i in range(len(grilla[numero_ingresado - 1])):
                 if '.' in grilla[numero_ingresado - 1]:
                     grilla[numero_ingresado - 1].remove('.')
-            mostrar_grilla(grilla, lista_silabas, lista_descripciones, autores)
+            del (diccionario_descripciones[numero_ingresado - 1])
+            del (diccionario_silabas[numero_ingresado - 1])
+            mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
         else:
             print("¡Incorrecto!")
 
