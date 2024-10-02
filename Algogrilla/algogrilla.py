@@ -155,7 +155,7 @@ def quedan_puntos(grilla):
     return False
 
 
-def modo_interactivo(grilla, diccionario_silabas, diccionario_descripciones, autores, palabras, columnas):
+def inicializar_diccionario_palabras(palabras, columnas):
     diccionario_palabras = {}
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     for i in range(len(palabras)):
@@ -165,47 +165,74 @@ def modo_interactivo(grilla, diccionario_silabas, diccionario_descripciones, aut
             palabras[i][columna_subfrase_1] = palabras[i][columna_subfrase_1].upper()
             palabras[i][columna_subfrase_2] = palabras[i][columna_subfrase_2].upper()
         diccionario_palabras[i + 1] = ''.join(palabras[i])
+    return diccionario_palabras
+
+
+def limpiar_grilla(grilla):
     for i in range(len(grilla)):
         for j in range(len(grilla[i])):
             grilla[i][j] = '.' if grilla[i][j].isalpha() else grilla[i][j]
-    mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
-    print()
+
+
+def normalizar_diccionario_palabras(diccionario_palabras):
     for clave, palabra in diccionario_palabras.items():
         palabra_normalizada = []
         for letra in palabra:
             letra_normalizada = normalizar(letra)
             palabra_normalizada.append(letra_normalizada)
         diccionario_palabras[clave] = ''.join(palabra_normalizada)
+
+
+def pedir_numero_palabra():
+    while True:
+        try:
+            numero_ingresado = int(input("Ingrese un numero de palabra o 0 para continuar: "))
+            if numero_ingresado < 0:
+                raise ValueError("No se permiten numeros negativos.")
+            return numero_ingresado
+        except ValueError:
+            print("Ingrese un número válido, no una palabra.")
+
+
+def verificar_palabra(grilla, diccionario_palabras, diccionario_silabas, diccionario_descripciones, autores,
+                      numero_ingresado, palabra_ingresada):
+    """Verifica si la palabra ingresada es correcta y actualiza la grilla y los diccionarios."""
+    if numero_ingresado in diccionario_palabras and palabra_ingresada == diccionario_palabras[numero_ingresado].lower():
+        grilla[numero_ingresado - 1].append(diccionario_palabras[numero_ingresado])
+        print("Correcto!")
+        for i in range(len(grilla[numero_ingresado - 1])):
+            if '.' in grilla[numero_ingresado - 1]:
+                grilla[numero_ingresado - 1].remove('.')
+        del diccionario_descripciones[numero_ingresado - 1]
+        del diccionario_silabas[numero_ingresado - 1]
+
+        mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
+    else:
+        print("¡Incorrecto!")
+
+
+def modo_interactivo(grilla, diccionario_silabas, diccionario_descripciones, autores, palabras, columnas):
+    """Función principal del modo interactivo del juego."""
+    diccionario_palabras = inicializar_diccionario_palabras(palabras, columnas)
+    limpiar_grilla(grilla)
+    mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
+
+    normalizar_diccionario_palabras(diccionario_palabras)
     print(diccionario_palabras)
+
     while True:
         if not quedan_puntos(grilla):
             print("Felicidades! Adivinaste todas las palabras")
             break
-        try:
-            numero_ingresado = int(input("Ingrese un numero de palabra o 0 para continuar: "))
-            if numero_ingresado < 0 or not type(numero_ingresado) == int:
-                raise ValueError("No se permiten numeros negativos o palabras.")
-            if numero_ingresado > len(grilla):
-                raise ValueError("El numero ingresado debe ser menor a la cantidad de palabras de la algogrilla.")
-        except ValueError:
-            print("Ingrese un numero no una palabra")
-            continue
+
+        numero_ingresado = pedir_numero_palabra()
+
         if numero_ingresado == 0:
             break
 
         palabra_ingresada = input("Ingrese la definicion de la palabra: ").lower()
-        if numero_ingresado in diccionario_palabras and palabra_ingresada == diccionario_palabras[
-            numero_ingresado].lower():
-            grilla[numero_ingresado - 1].append(diccionario_palabras[numero_ingresado])
-            print("Correcto!")
-            for i in range(len(grilla[numero_ingresado - 1])):
-                if '.' in grilla[numero_ingresado - 1]:
-                    grilla[numero_ingresado - 1].remove('.')
-            del (diccionario_descripciones[numero_ingresado - 1])
-            del (diccionario_silabas[numero_ingresado - 1])
-            mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
-        else:
-            print("¡Incorrecto!")
+        verificar_palabra(grilla, diccionario_palabras, diccionario_silabas, diccionario_descripciones, autores,
+                          numero_ingresado, palabra_ingresada)
 
 
 main()
