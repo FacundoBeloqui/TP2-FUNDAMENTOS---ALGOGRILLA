@@ -61,6 +61,7 @@ def elegir_frase():
 
 
 def dividir_columnas(columnas):
+    """separa las columnas del archivo frases.csv para poder ser usadas individualmente"""
     columnas = columnas.split(',')
     lista_columnas = []
     for columna in columnas:
@@ -86,7 +87,7 @@ def separar_frase(frase):
 
 def guardar_palabras(subfrase_1, subfrase_2, columnas):
     """Elige una palabra de palabras.csv que cumpla con que la posicion de sus letras coincida con las de las columnas de la frase de la grilla,
-       ademas devuelve sus silabas y descripcion para despues ser usadas en la funcion mostrar grilla"""
+       ademas devuelve sus silabas y descripcion en forma de diccionario para despues ser usadas en la funcion mostrar grilla"""
     palabras_de_la_frase = []
     silabas_de_la_frase = {}
     descripcion_de_la_frase = {}
@@ -149,6 +150,7 @@ def mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autor
 
 
 def quedan_puntos(grilla):
+    """Devuelve False en caso de que no queden palabras sin rellenar y asi saber si el usuario termino el juego"""
     for fila in grilla:
         if '.' in fila:
             return True
@@ -156,6 +158,7 @@ def quedan_puntos(grilla):
 
 
 def inicializar_diccionario_palabras(palabras, columnas):
+    """Inicializa el diccionario con las palabras de la grilla para poder luego comparar con las ingresadas por el usuario"""
     diccionario_palabras = {}
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     for i in range(len(palabras)):
@@ -168,13 +171,9 @@ def inicializar_diccionario_palabras(palabras, columnas):
     return diccionario_palabras
 
 
-def limpiar_grilla(grilla):
-    for i in range(len(grilla)):
-        for j in range(len(grilla[i])):
-            grilla[i][j] = '.' if grilla[i][j].isalpha() else grilla[i][j]
-
-
 def normalizar_diccionario_palabras(diccionario_palabras):
+    """Se les saca todas las posibles tilder a las palabras del diccionario para que luego no haya conflictos con las palabras
+    ingresadas por el usuario"""
     for clave, palabra in diccionario_palabras.items():
         palabra_normalizada = []
         for letra in palabra:
@@ -183,7 +182,16 @@ def normalizar_diccionario_palabras(diccionario_palabras):
         diccionario_palabras[clave] = ''.join(palabra_normalizada)
 
 
+def limpiar_grilla(grilla):
+    """Convierte todos los caracteres de la grilla en puntos para que el usuario no sepa cuales son las palabras en cuestion"""
+    for i in range(len(grilla)):
+        for j in range(len(grilla[i])):
+            grilla[i][j] = '.' if grilla[i][j].isalpha() else grilla[i][j]
+
+
 def pedir_numero_palabra():
+    """Se inicia el ciclo en el cual se le pregunta al usuario por un numero que forme parte de la grilla
+    y en caso contrario se lanza una excepcion hasta que se ingrese una respuesta acorde"""
     while True:
         try:
             numero_ingresado = int(input("Ingrese un numero de palabra o 0 para continuar: "))
