@@ -82,6 +82,9 @@ def separar_frase(frase):
     mitad = len(frase_caracteres_alfabeticos) // 2
     subfrase_1 = frase_caracteres_alfabeticos[:mitad]
     subfrase_2 = frase_caracteres_alfabeticos[mitad:]
+    if len(frase_caracteres_alfabeticos) % 2 != 0:
+        subfrase_1 = frase_caracteres_alfabeticos[:mitad + 1]
+        subfrase_2 = frase_caracteres_alfabeticos[mitad - 1:]
     return subfrase_1, subfrase_2
 
 
@@ -226,7 +229,6 @@ def modo_interactivo(grilla, diccionario_silabas, diccionario_descripciones, aut
     mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autores)
 
     normalizar_diccionario_palabras(diccionario_palabras)
-    print(diccionario_palabras)
 
     while True:
         if not quedan_puntos(grilla):
