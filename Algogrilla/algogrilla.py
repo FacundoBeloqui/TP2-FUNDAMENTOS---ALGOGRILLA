@@ -14,31 +14,27 @@ def main():
     random.seed(numero_de_algogrilla)
 
     imprimir_solucion = args.solucion  # es True si el usuario incluyó la opción -s
-
+    frase, columnas, autores = elegir_frase()
+    subfrase_1, subfrase_2 = separar_frase(frase)
+    palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+    grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
     if imprimir_solucion:
-        frase, columnas, autores = elegir_frase()
-        subfrase_1, subfrase_2 = separar_frase(frase)
-        palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
-        grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
+        print(frase)
         mostrar_grilla(grilla, silabas, descripcion, autores)
     else:
-        frase, columnas, autores = elegir_frase()
-        subfrase_1, subfrase_2 = separar_frase(frase)
-        palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
-        grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
         modo_interactivo(grilla, silabas, descripcion, autores, palabras_de_la_frase, columnas)
 
 
 def normalizar(caracter):
     """Convierte las letras vocales que llevan tilde en su version normal(sin tilde)"""
-    reemplazos = (
-        ('a', 'á'),
-        ('e', 'é'),
-        ('i', 'í'),
-        ('o', 'ó'),
-        ('u', 'ú')
-    )
-    for letra_normal, letra_con_tilde in reemplazos:
+    reemplazos = {
+        'a': 'á',
+        'e': 'é',
+        'i': 'í',
+        'o': 'ó',
+        'u': 'ú'
+    }
+    for letra_normal, letra_con_tilde in reemplazos.items():
         if caracter == letra_con_tilde:
             caracter = letra_normal
     return caracter
@@ -52,6 +48,10 @@ def elegir_frase():
             reader = csv.reader(archivo_frases, delimiter='|', quoting=csv.QUOTE_NONE)
             fila = random.choice(list(reader))
             frase = fila[0]
+            if "(Primera parte)" in frase:
+                frase = frase.strip("(Primera parte)")
+            if "(Conclusión)" in frase:
+                frase = frase.strip("(Conclusión)")
             columnas = fila[1]
             autores = fila[2]
             return frase, columnas, autores
@@ -70,7 +70,6 @@ def dividir_columnas(columnas):
     columna_subfrase_1, columna_subfrase_2 = lista_columnas[0] - 1, lista_columnas[1] - 1
     return columna_subfrase_1, columna_subfrase_2
 
-
 def separar_frase(frase):
     """junta toda la frase eliminando espacios y caracteres no alfabeticos(ademas de convertir las vocales con tilde en su version normal)
     y luego la separa en 2 devolviendo las 2 subfrases respectivamente"""
@@ -79,12 +78,9 @@ def separar_frase(frase):
         caracter = caracter.lower()
         if caracter.isalpha():
             frase_caracteres_alfabeticos += normalizar(caracter)
-    mitad = len(frase_caracteres_alfabeticos) // 2
+    mitad = (len(frase_caracteres_alfabeticos) + 1) // 2
     subfrase_1 = frase_caracteres_alfabeticos[:mitad]
     subfrase_2 = frase_caracteres_alfabeticos[mitad:]
-    if len(frase_caracteres_alfabeticos) % 2 != 0:
-        subfrase_1 = frase_caracteres_alfabeticos[:mitad + 1]
-        subfrase_2 = frase_caracteres_alfabeticos[mitad - 1:]
     return subfrase_1, subfrase_2
 
 
@@ -95,22 +91,25 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
     silabas_de_la_frase = {}
     descripcion_de_la_frase = {}
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
-    with open('palabras.csv') as archivo_palabras:
-        reader = csv.reader(archivo_palabras, delimiter='|')
-        lista_palabras = list(reader)
-        for i, letra_1 in enumerate(subfrase_1):
-            if i < len(subfrase_2):
+    try:
+        with open('palabras.csv') as archivo_palabras:
+            reader = csv.reader(archivo_palabras, delimiter='|')
+            lista_palabras = list(reader)
+            for i in range(min(len(subfrase_1), len(subfrase_2))):
+                letra_1 = subfrase_1[i]
                 letra_2 = subfrase_2[i]
                 for palabra, silabas, descripcion in lista_palabras:
                     if len(palabra) > max(columna_subfrase_1, columna_subfrase_2):
                         if palabra[columna_subfrase_1] == letra_1 and palabra[columna_subfrase_2] == letra_2:
-                            palabras_de_la_frase.append(palabra)
-                            silabas_de_la_frase[i] = silabas
-                            descripcion_de_la_frase[i] = descripcion
-                            break
-    return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
-
-
+                            if palabra not in palabras_de_la_frase:
+                                palabras_de_la_frase.append(palabra)
+                                silabas_de_la_frase[i] = silabas
+                                descripcion_de_la_frase[i] = descripcion
+                                break
+        return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
+    except FileNotFoundError:
+        print("No se encontro uno o mas archivos necesarios para la ejecucion del programa")
+        exit()
 def crear_grilla(subfrase_1, columnas, palabras_de_la_frase):
     """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
     a medida que se itera sobre cada fila, se inserta la letra de la subfrase que coincide con la columna especificada en la frase"""
@@ -147,7 +146,8 @@ def mostrar_grilla(grilla, diccionario_silabas, diccionario_descripciones, autor
     print("SILABAS")
     for silabas in diccionario_silabas.values():
         silaba = silabas.split('-')
-        print(f"{silaba[0]}, ", end='')
+        silaba = random.choice(silaba)
+        print(f"{silaba}, ", end='')
     print()
     print(f"Al finalizar se mostrara una frase de {autores}")
 
