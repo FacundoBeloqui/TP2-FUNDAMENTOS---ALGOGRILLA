@@ -14,12 +14,16 @@ def main():
     random.seed(numero_de_algogrilla)
 
     imprimir_solucion = args.solucion  # es True si el usuario incluyó la opción -s
-    frase, columnas, autores = elegir_frase()
-    subfrase_1, subfrase_2 = separar_frase(frase)
-    palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+
+    palabras_de_la_frase = None
+    while not palabras_de_la_frase:
+        frase, columnas, autores = elegir_frase()
+        subfrase_1, subfrase_2 = separar_frase(frase)
+        palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+
     grilla = crear_grilla(subfrase_1, columnas, palabras_de_la_frase)
+
     if imprimir_solucion:
-        print(frase)
         mostrar_grilla(grilla, silabas, descripcion, autores)
     else:
         modo_interactivo(grilla, silabas, descripcion, autores, palabras_de_la_frase, columnas)
@@ -78,7 +82,7 @@ def separar_frase(frase):
         caracter = caracter.lower()
         if caracter.isalpha():
             frase_caracteres_alfabeticos += normalizar(caracter)
-    mitad = (len(frase_caracteres_alfabeticos) + 1) // 2
+    mitad = len(frase_caracteres_alfabeticos) // 2
     subfrase_1 = frase_caracteres_alfabeticos[:mitad]
     subfrase_2 = frase_caracteres_alfabeticos[mitad:]
     return subfrase_1, subfrase_2
@@ -207,7 +211,7 @@ def pedir_numero_palabra():
 
 def verificar_palabra(grilla, diccionario_palabras, diccionario_silabas, diccionario_descripciones, autores,
                       numero_ingresado, palabra_ingresada):
-    """Verifica si la palabra ingresada es correcta y actualiza la grilla y los diccionarios."""
+    """Verifica si la palabra ingresada es correcta y actualiza la grilla y los diccionarios de silabas y frases."""
     if numero_ingresado in diccionario_palabras and palabra_ingresada == diccionario_palabras[numero_ingresado].lower():
         grilla[numero_ingresado - 1].append(diccionario_palabras[numero_ingresado])
         print("Correcto!")
