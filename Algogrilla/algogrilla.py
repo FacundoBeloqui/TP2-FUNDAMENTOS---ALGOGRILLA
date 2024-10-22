@@ -15,15 +15,14 @@ def main():
 
     imprimir_solucion = args.solucion  # es True si el usuario incluyó la opción -s
 
-
     frase, columnas, autores = elegir_frase()
     subfrase_1, subfrase_2 = separar_frase(frase)
-    palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
-    if not guardar_palabras(subfrase_1, subfrase_2, columnas):
+    encontradas, palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+    while not encontradas:
         print("No se encontraron suficientes palabras, intentando con otra frase...")
         frase, columnas, autores = elegir_frase()
         subfrase_1, subfrase_2 = separar_frase(frase)
-        palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+        encontradas, palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
     print(frase)
     grilla = crear_grilla(subfrase_1, subfrase_2, columnas, palabras_de_la_frase)
 
@@ -68,7 +67,8 @@ def elegir_frase():
 def dividir_columnas(columnas):
     """separa las columnas del archivo frases.csv para poder ser usadas individualmente"""
     columnas = columnas.split(',')
-    return int(columnas[0])-1, int(columnas[1])-1
+    return int(columnas[0]) - 1, int(columnas[1]) - 1
+
 
 def separar_frase(frase):
     """junta toda la frase eliminando espacios y caracteres no alfabeticos(ademas de convertir las vocales con tilde en su version normal)
@@ -84,7 +84,7 @@ def separar_frase(frase):
         subfrase_2 = frase_caracteres_alfabeticos[mitad:]
     else:
         subfrase_1 = frase_caracteres_alfabeticos[:mitad + 1]
-        subfrase_2 = frase_caracteres_alfabeticos[mitad + 1 :len(frase_caracteres_alfabeticos) + 1]
+        subfrase_2 = frase_caracteres_alfabeticos[mitad + 1:len(frase_caracteres_alfabeticos) + 1]
     return subfrase_1, subfrase_2
 
 
@@ -97,28 +97,38 @@ def guardar_palabras(subfrase_1, subfrase_2, columnas):
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
     try:
         with open('palabras.csv') as archivo_palabras:
-                while len(palabras_de_la_frase) < max(len(subfrase_1), len(subfrase_2)):
-                    archivo_palabras.seek(0)
-                    for linea in archivo_palabras:
-                            palabra, silabas, descripcion = linea.rstrip("\n").split('|')
-                            if len(subfrase_1) > len(subfrase_2) and len(palabras_de_la_frase) == len(subfrase_1) - 1:
-                                if len(palabra) < columna_subfrase_2 and palabra[columna_subfrase_1] == subfrase_1[len(subfrase_1) - 1]:
-                                    if palabra not in palabras_de_la_frase.values():
-                                        palabras_de_la_frase[len(palabras_de_la_frase) + 1] = palabra
-                                        silabas_de_la_frase[len(palabras_de_la_frase)] = silabas
-                                        descripcion_de_la_frase[len(palabras_de_la_frase)] = descripcion
-                                        break
-                            else:
-                                if len(palabra) > columna_subfrase_2 and palabra[columna_subfrase_1] == subfrase_1[len(palabras_de_la_frase)] and palabra[columna_subfrase_2] == subfrase_2[len(palabras_de_la_frase)]:
-                                    if palabra not in palabras_de_la_frase.values():
-                                        palabras_de_la_frase[len(palabras_de_la_frase) + 1] = palabra
-                                        silabas_de_la_frase[len(palabras_de_la_frase)] = silabas
-                                        descripcion_de_la_frase[len(palabras_de_la_frase)] = descripcion
-                                        break
+            while len(palabras_de_la_frase) < max(len(subfrase_1), len(subfrase_2)):
+                archivo_palabras.seek(0)
+                palabra_encontrada = False
+                for linea in archivo_palabras:
+                    palabra, silabas, descripcion = linea.rstrip("\n").split('|')
+                    if len(subfrase_1) > len(subfrase_2) and len(palabras_de_la_frase) == len(subfrase_1) - 1:
+                        if len(palabra) < columna_subfrase_2 and palabra[columna_subfrase_1] == subfrase_1[
+                            len(subfrase_1) - 1]:
+                            if palabra not in palabras_de_la_frase.values():
+                                palabras_de_la_frase[len(palabras_de_la_frase) + 1] = palabra
+                                silabas_de_la_frase[len(palabras_de_la_frase)] = silabas
+                                descripcion_de_la_frase[len(palabras_de_la_frase)] = descripcion
+                                palabra_encontrada = True
+                                break
+                    else:
+                        if len(palabra) > columna_subfrase_2 and palabra[columna_subfrase_1] == subfrase_1[
+                            len(palabras_de_la_frase)] and palabra[columna_subfrase_2] == subfrase_2[
+                            len(palabras_de_la_frase)]:
+                            if palabra not in palabras_de_la_frase.values():
+                                palabras_de_la_frase[len(palabras_de_la_frase) + 1] = palabra
+                                silabas_de_la_frase[len(palabras_de_la_frase)] = silabas
+                                descripcion_de_la_frase[len(palabras_de_la_frase)] = descripcion
+                                palabra_encontrada = True
+                                break
+                if not palabra_encontrada:
+                    return False, {}, {}, {}
     except FileNotFoundError:
         print("No se encontro uno o mas archivos necesarios para la ejecucion del programa")
         exit()
-    return palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
+    return True, palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
+
+
 def crear_grilla(subfrase_1, subfrase_2, columnas, palabras_de_la_frase):
     """Crea una lista de listas que simula ser la grilla, la cual posee como cantidad de filas la mitad de la frase,
     a medida que se itera sobre cada fila, se inserta la letra de la subfrase que coincide con la columna especificada en la frase"""
