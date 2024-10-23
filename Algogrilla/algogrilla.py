@@ -17,12 +17,7 @@ def main():
 
     frase, columnas, autores = elegir_frase()
     subfrase_1, subfrase_2 = separar_frase(frase)
-    encontradas, palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
-    while not encontradas:
-        print("No se encontraron suficientes palabras, intentando con otra frase...")
-        frase, columnas, autores = elegir_frase()
-        subfrase_1, subfrase_2 = separar_frase(frase)
-        encontradas, palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
+    palabras_de_la_frase, silabas, descripcion = guardar_palabras(subfrase_1, subfrase_2, columnas)
     print(frase)
     grilla = crear_grilla(subfrase_1, subfrase_2, columnas, palabras_de_la_frase)
 
@@ -89,44 +84,50 @@ def separar_frase(frase):
 
 
 def guardar_palabras(subfrase_1, subfrase_2, columnas):
-    """Elige una palabra de palabras.csv que cumpla con que la posicion de sus letras coincida con las de las columnas de la frase de la grilla,
-       ademas devuelve sus silabas y descripcion en forma de diccionario para despues ser usadas en la funcion mostrar grilla"""
+    """Elige una palabra de palabras.csv que cumpla con que la posición de sus letras coincida con las de las columnas de la frase de la grilla,
+       además devuelve sus sílabas y descripción en forma de diccionario para después ser usadas en la función mostrar grilla."""
     palabras_de_la_frase = {}
     silabas_de_la_frase = {}
     descripcion_de_la_frase = {}
     columna_subfrase_1, columna_subfrase_2 = dividir_columnas(columnas)
+
     try:
         with open('palabras.csv') as archivo_palabras:
-            while len(palabras_de_la_frase) < max(len(subfrase_1), len(subfrase_2)):
-                archivo_palabras.seek(0)
+            for linea in archivo_palabras:
+                palabra, silabas, descripcion = linea.rstrip("\n").split('|')
+                i = 0
                 palabra_encontrada = False
-                for linea in archivo_palabras:
-                    palabra, silabas, descripcion = linea.rstrip("\n").split('|')
-                    if len(subfrase_1) > len(subfrase_2) and len(palabras_de_la_frase) == len(subfrase_1) - 1:
-                        if len(palabra) < columna_subfrase_2 and palabra[columna_subfrase_1] == subfrase_1[
-                            len(subfrase_1) - 1]:
-                            if palabra not in palabras_de_la_frase.values():
-                                palabras_de_la_frase[len(palabras_de_la_frase) + 1] = palabra
-                                silabas_de_la_frase[len(palabras_de_la_frase)] = silabas
-                                descripcion_de_la_frase[len(palabras_de_la_frase)] = descripcion
+
+                while i < max(len(subfrase_1), len(subfrase_2)):
+                    if len(subfrase_1) > len(subfrase_2) and i == len(subfrase_1) - 1:
+                        if columna_subfrase_2 > len(palabra) > columna_subfrase_1 and palabra[columna_subfrase_1] == \
+                                subfrase_1[i]:
+                            if i + 1 not in palabras_de_la_frase:
+                                palabras_de_la_frase[i + 1] = palabra
+                                silabas_de_la_frase[i + 1] = silabas
+                                descripcion_de_la_frase[i + 1] = descripcion
                                 palabra_encontrada = True
                                 break
                     else:
-                        if len(palabra) > columna_subfrase_2 and palabra[columna_subfrase_1] == subfrase_1[
-                            len(palabras_de_la_frase)] and palabra[columna_subfrase_2] == subfrase_2[
-                            len(palabras_de_la_frase)]:
-                            if palabra not in palabras_de_la_frase.values():
-                                palabras_de_la_frase[len(palabras_de_la_frase) + 1] = palabra
-                                silabas_de_la_frase[len(palabras_de_la_frase)] = silabas
-                                descripcion_de_la_frase[len(palabras_de_la_frase)] = descripcion
+                        if len(palabra) > max(columna_subfrase_1, columna_subfrase_2) and \
+                                palabra[columna_subfrase_1] == subfrase_1[i] and palabra[columna_subfrase_2] == \
+                                subfrase_2[i]:
+                            if i + 1 not in palabras_de_la_frase:
+                                palabras_de_la_frase[i + 1] = palabra
+                                silabas_de_la_frase[i + 1] = silabas
+                                descripcion_de_la_frase[i + 1] = descripcion
                                 palabra_encontrada = True
                                 break
+
+                    i += 1
                 if not palabra_encontrada:
-                    return False, {}, {}, {}
+                    continue
+
     except FileNotFoundError:
-        print("No se encontro uno o mas archivos necesarios para la ejecucion del programa")
+        print("No se encontró uno o más archivos necesarios para la ejecución del programa")
         exit()
-    return True, palabras_de_la_frase, silabas_de_la_frase, descripcion_de_la_frase
+    return dict(sorted(palabras_de_la_frase.items())), dict(sorted(silabas_de_la_frase.items())), dict(
+        sorted(descripcion_de_la_frase.items()))
 
 
 def crear_grilla(subfrase_1, subfrase_2, columnas, palabras_de_la_frase):
